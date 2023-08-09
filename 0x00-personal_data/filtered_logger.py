@@ -80,5 +80,6 @@ def main() -> None:
     logger.info("name=Bob; email=bob@example.com; ssn=123-45-6789;"
                 " password=secret")
 
+
 if __name__ == "__main__":
     main()
