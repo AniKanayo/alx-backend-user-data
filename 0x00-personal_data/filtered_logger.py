@@ -9,44 +9,25 @@ from typing import List
 import logging
 
 
-class SensitiveDataFilter(logging.Filter):
-    """
-    Custom logging filter to redact sensitive information from log messages.
-    """
-
-    SENSITIVE_FIELDS = [
-        "password",
-        "date_of_birth"
-    ]
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        """
-        Filter method to redact sensitive information from log messages.
-
-        Args:
-            record: The LogRecord to be filtered.
-
-        Returns:
-            True to allow the record to be processed, False to discard it.
-        """
-        message = record.getMessage()
-        for field in self.SENSITIVE_FIELDS:
-            message = re.sub(fr"{field}=([^;]*)", f"{field}=<REDACTED>",
-                             message)
-        record.msg = message
-        return True
-
-
 class RedactingFormatter(logging.Formatter):
     """
-    Custom log formatter to filter and redact sensitive information
-    in log messages.
+    Class RedactingFormatter
+
+    Redacting Formatter class for filtering sensitive information in
+    log messages
     """
+
+    REDACTION = "***"
+    SEPARATOR = ";"
+
+    def __init__(self, fields: List[str]):
+        super(RedactingFormatter, self).__init__("[HOLBERTON] %(name)s \
+            %(levelname)s %(asctime)-15s: %(message)s")
+        self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
         """
-        Format method to filter and redact sensitive information in log
-        messages.
+        Format function to filter sensitive information in log messages.
 
         Args:
             record: The LogRecord to be formatted.
@@ -54,30 +35,41 @@ class RedactingFormatter(logging.Formatter):
         Returns:
             The formatted log message with filtered sensitive information.
         """
-        if isinstance(record.msg, str):
-            record.msg = self.redact(record.msg)
-        return super().format(record)
+        message = super().format(record)
+        for field in self.fields:
+            message = self.filter_datum(field, self.REDACTION, message,
+                                        self.SEPARATOR)
+        return message
 
-    def redact(self, message: str) -> str:
+    @staticmethod
+    def filter_datum(field: str, redaction: str, message: str,
+                     separator: str = ";") -> str:
         """
-        Redact sensitive information in the log message.
+        Filter and redact specific field in a log message.
 
         Args:
-            message: The log message to be redacted.
+            field: The name of the field to be filtered.
+            redaction: The string to be used as the redacted value.
+            message: The log message to be filtered.
+            separator: The separator used for separating fields in the
+            log message.
 
         Returns:
-            The redacted log message.
+            The filtered log message with redacted values for the specified
+            field.
         """
-        filter = SensitiveDataFilter()
-        return filter.filter(message)
+        pattern = fr"{field}=([^{separator}]*)"
+        replacement = fr"{field}={redaction}"
+        message = re.sub(pattern, replacement, message)
+        return message
 
 
 def main() -> None:
     """
-    Main function to demonstrate the usage of RedactingFormatter class.
+    Main function to demonstrate the usage of RedactingFormatter
+    class.
     """
-    formatter = RedactingFormatter("[HOLBERTON] %(name)s \
-        %(levelname)s %(asctime)-15s: %(message)s")
+    formatter = RedactingFormatter(fields=["password", "date_of_birth"])
     logger = logging.getLogger("example")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
