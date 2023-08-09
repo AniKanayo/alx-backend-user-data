@@ -13,8 +13,8 @@ class RedactingFormatter(logging.Formatter):
     """
     Class RedactingFormatter
 
-    Redacting Formatter class for filtering sensitive information
-    in log messages.
+    Redacting Formatter class for filtering sensitive
+    information in log messages.
     """
 
     REDACTION = "***"
@@ -22,7 +22,7 @@ class RedactingFormatter(logging.Formatter):
 
     def __init__(self, fields: List[str]):
         super(RedactingFormatter, self).__init__("[HOLBERTON] \
-                %(name)s %(levelname)s %(asctime)-15s: %(message)s")
+            %(name)s %(levelname)s %(asctime)-15s: %(message)s")
         self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
@@ -35,7 +35,7 @@ class RedactingFormatter(logging.Formatter):
         Returns:
             The formatted log message with filtered sensitive information.
         """
-        message = logging.Formatter.format(self, record)
+        message = super().format(record)
         for field in self.fields:
             message = self.filter_datum(field, self.REDACTION,
                                         message, self.SEPARATOR)
@@ -51,10 +51,12 @@ class RedactingFormatter(logging.Formatter):
             field: The name of the field to be filtered.
             redaction: The string to be used as the redacted value.
             message: The log message to be filtered.
-            separator: The separator used for separating fields in the log message
+            separator: The separator used for separating fields in the
+            log message
 
         Returns:
-            The filtered log message with redacted values for the specified field.
+            The filtered log message with redacted values for the specified
+            field.
         """
         pattern = fr"{field}=([^{separator}]*)"
         replacement = fr"{field}={redaction}"
@@ -64,7 +66,8 @@ class RedactingFormatter(logging.Formatter):
 
 def main() -> None:
     """
-    Main function to demonstrate the usage of filter_datum function.
+    Main function to demonstrate the usage of RedactingFormatter
+    class.
     """
     formatter = RedactingFormatter(fields=["password", "date_of_birth"])
     logger = logging.getLogger("example")
@@ -80,9 +83,7 @@ def main() -> None:
     ]
 
     for message in messages:
-        filtered_message = filter_datum(["password", "date_of_birth"],
-                                         "***", message)
-        logger.warning(filtered_message)
+        logger.warning(message)
 
 
 if __name__ == "__main__":
