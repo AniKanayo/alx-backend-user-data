@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-This module provides a RedactingFormatter class
-that redacts specific fields in log messages.
+This module provides a function to filter and
+redact specific fields in a log message.
 """
 
 import logging
@@ -11,10 +11,14 @@ from typing import List
 
 
 class RedactingFormatter(logging.Formatter):
-    """Redacting Formatter class"""
+    """
+    Redacting Formatter class.
+
+    Args:
+        fields: A list of field names to be redacted.
+    """
 
     REDACTION = "***"
-    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
     SEPARATOR = ";"
 
     def __init__(self, fields: List[str]) -> None:
@@ -24,7 +28,9 @@ class RedactingFormatter(logging.Formatter):
         Args:
             fields: A list of field names to be redacted.
         """
-        super(RedactingFormatter, self).__init__(self.FORMAT)
+        fmt = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: \
+               %(message)s"
+        super(RedactingFormatter, self).__init__(fmt)
         self.fields = fields
 
     def filter_datum(self, redaction: str, message: str) -> str:
@@ -46,7 +52,7 @@ class RedactingFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """
-        Format the log record. Redact specific fields using filter_datum method
+        Format log record. Redact specific fields using filter_datum method.
 
         Args:
             record: The LogRecord to be formatted.
@@ -54,33 +60,48 @@ class RedactingFormatter(logging.Formatter):
         Returns:
             The formatted log message with redacted fields.
         """
-        # Get the original log message
         original_message = super().format(record)
+        return self.filter_datum(self.REDACTION, original_message)
 
-        # Redact specific fields using filter_datum method
-        redacted_message = self.filter_datum(redaction=self.REDACTION,
-                                             message=original_message)
 
-        # Return the redacted log message
-        return redacted_message
+def filter_datum(fields: List[str], redaction: str
+                 message: str, separator: str = ';') -> str:
+    """
+    Filter and redact specific fields in a log message.
+
+    Args:
+        fields: A list of field names to be redacted.
+        redaction: The string to replace the field values with.
+        message: The log message to be filtered.
+        separator: The character separating the fields in
+                   the log message. Default is ';'.
+
+    Returns:
+        The filtered log message with redacted field values.
+    """
+    for field in fields:
+        pattern = fr"{field}=([^{separator}]*)"
+        replacement = fr"{field}={redaction}"
+        message = re.sub(pattern, replacement, message)
+    return message
 
 
 def main() -> None:
     """
-    Main function to demonstrate the usage of RedactingFormatter.
+    Main function to demonstrate the usage of filter_datum function.
     """
-    # Set up logging with the RedactingFormatter
     fields = ["password", "date_of_birth"]
-    handler = logging.StreamHandler()
-    handler.setFormatter(RedactingFormatter(fields))
-    logger = logging.getLogger("example")
-    logger.addHandler(handler)
+    redaction = "xxx"
+    messages = [
+        "name=egg;email=eggmin@eggsample.com;password=secret;"
+        "date_of_birth=01/01/2000;",
+        "name=bob;email=bob@dylan.com;password=123456;"
+        "date_of_birth=02/02/2002;"
+    ]
+    separator = ";"
 
-    # Sample log messages
-    logger.warning("name=egg;email=eggmin@eggsample.com;password=secret;"
-                   "date_of_birth=01/01/2000;")
-    logger.warning("name=bob;email=bob@dylan.com;password=123456;"
-                   "date_of_birth=02/02/2002;")
+    for message in messages:
+        print(filter_datum(fields, redaction, message, separator))
 
 
 if __name__ == "__main__":
