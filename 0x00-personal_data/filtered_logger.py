@@ -13,8 +13,8 @@ class RedactingFormatter(logging.Formatter):
     """
     Class RedactingFormatter
 
-    Redacting Formatter class for filtering sensitive information
-    in log messages.
+    Redacting Formatter class for filtering sensitive
+    information in log messages.
     """
     REDACTION = "***"
     SEPARATOR = ";"
@@ -26,8 +26,8 @@ class RedactingFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """
-        Format function to filter sensitive information in log
-        messages.
+        Format function to filter sensitive information
+        in log messages.
 
         Args:
             record: The LogRecord to be formatted.
@@ -36,7 +36,8 @@ class RedactingFormatter(logging.Formatter):
             The formatted log message with filtered sensitive
             information.
         """
-        record.message = self.filter_fields(record.message)
+        message = self.filter_fields(record.msg)
+        record.msg = message
         return super().format(record)
 
     def filter_fields(self, message: str) -> str:
@@ -58,7 +59,8 @@ class RedactingFormatter(logging.Formatter):
 
 def main() -> None:
     """
-    Main function to demonstrate the usage of RedactingFormatter class.
+    Main function to demonstrate the usage of RedactingFormatter
+    class.
     """
     # Create logger
     logger = logging.getLogger("my_logger")
@@ -76,8 +78,7 @@ def main() -> None:
 
     # Log a message
     logger.info("name=Bob; email=bob@example.com; ssn=123-45-6789;"
-                "password=secret")
-
+                " password=secret")
 
 if __name__ == "__main__":
     main()
