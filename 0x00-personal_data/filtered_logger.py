@@ -1,27 +1,53 @@
 #!/usr/bin/env python3
-""" Module: """
+
+"""
+This module provides a function to filter and redact
+specific fields in a log message.
+"""
+
 import re
-from typing import List, Any
+from typing import List
 
 
-def filter_datum(fields: List[str], redaction: str,
-                 message: str, separator: str) -> str:
+def filter_datum(fields: List[str], redaction: str, message: str,
+                 separator: str = ';') -> str:
     """
-    Replaces field values in the given message with a redaction string.
+    Filter and redact specific fields in a log message.
 
     Args:
-        fields (List[str]): a list of strings representing the fields to be
-        obfuscated.
-        redaction (str): a string representing the redaction used to
-        replace the fields.
-        message (str): a string representing the log message.
-        separator (str): a string representing the character separating
-        the fields in the message.
+        fields: A list of field names to be redacted.
+        redaction: The string to replace the field values with.
+        message: The log message to be filtered.
+        separator: The character separating the fields in the log message.
+        Default is ';'.
 
     Returns:
-        The obfuscated message string.
+        The filtered log message with redacted field values.
     """
     for field in fields:
-        message = re.sub(f"{field}={field}[^{separator}]*",
-                         f"{field}={redaction}", message)
+        pattern = fr"{field}=([^{separator}]*)"
+        replacement = fr"{field}={redaction}"
+        message = re.sub(pattern, replacement, message)
     return message
+
+
+def main() -> None:
+    """
+    Main function to demonstrate the usage of filter_datum function.
+    """
+    fields = ["password", "date_of_birth"]
+    redaction = "xxx"
+    messages = [
+        "name=egg;email=eggmin@eggsample.com;password=secret;"
+        "date_of_birth=01/01/2000;",
+        "name=bob;email=bob@dylan.com;password=123456;"
+        "date_of_birth=02/02/2002;"
+    ]
+    separator = ";"
+
+    for message in messages:
+        print(filter_datum(fields, redaction, message, separator))
+
+
+if __name__ == "__main__":
+    main()
