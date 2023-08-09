@@ -20,47 +20,39 @@ class RedactingFormatter(logging.Formatter):
     SEPARATOR = ";"
 
     def __init__(self, fields: List[str]):
-        super(RedactingFormatter, self).__init__("[HOLBERTON] %(name)s \
-            %(levelname)s %(asctime)-15s: %(message)s")
+        super(RedactingFormatter, self).__init__("[HOLBERTON] \
+            %(name)s %(levelname)s %(asctime)-15s: %(message)s")
         self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
         """
-        Format function to filter sensitive information in log messages
+        Format function to filter sensitive information in log
+        messages.
 
         Args:
             record: The LogRecord to be formatted.
 
         Returns:
-            The formatted log message with filtered sensitive information.
+            The formatted log message with filtered sensitive
+            information.
         """
-        message = super().format(record)
-        for field in self.fields:
-            message = self.filter_datum(field, self.REDACTION,
-                                        message, self.SEPARATOR)
-        return message
+        record.message = self.filter_fields(record.message)
+        return super().format(record)
 
-    @staticmethod
-    def filter_datum(field: str, redaction: str, message: str,
-                     separator: str = ";") -> str:
+    def filter_fields(self, message: str) -> str:
         """
-        Filter and redact specific field in a log message.
+        Filter and redact specific fields in a log message.
 
         Args:
-            field: The name of the field to be filtered.
-            redaction: The string to be used as the redacted value.
             message: The log message to be filtered.
-            separator: The separator used to separate fields in the
-            log message.
 
         Returns:
             The filtered log message with redacted values for the
-            specified field.
+            specified fields.
         """
-        pattern = fr"{field}=([^{separator}]*)"
-        replacement = fr"{field}={redaction}"
-        message = re.sub(pattern, replacement, message)
-        message = message.replace(separator, f"{separator} ")
+        for field in self.fields:
+            pattern = fr"{field}=([^;]*)"
+            message = re.sub(pattern, fr"{field}={self.REDACTION}", message)
         return message
 
 
@@ -68,21 +60,23 @@ def main() -> None:
     """
     Main function to demonstrate the usage of RedactingFormatter class.
     """
-    formatter = RedactingFormatter(fields=["password", "date_of_birth"])
-    logger = logging.getLogger("example")
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    # Create logger
+    logger = logging.getLogger("my_logger")
+    logger.setLevel(logging.INFO)
 
-    messages = [
-        "name=egg;email=eggmin@eggsample.com;password=secret;"
-        "date_of_birth=01/01/2000;",
-        "name=bob;email=bob@dylan.com;password=123456;"
-        "date_of_birth=02/02/2002;",
-    ]
+    # Create formatter
+    formatter = RedactingFormatter(fields=["email", "ssn", "password"])
 
-    for message in messages:
-        logger.warning(message)
+    # Create console handler and set formatter
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+
+    # Add console handler to the logger
+    logger.addHandler(console_handler)
+
+    # Log a message
+    logger.info("name=Bob; email=bob@example.com; ssn=123-45-6789;"
+                "password=secret")
 
 
 if __name__ == "__main__":
