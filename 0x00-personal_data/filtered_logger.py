@@ -13,21 +13,20 @@ class RedactingFormatter(logging.Formatter):
     """
     Class RedactingFormatter
 
-    Redacting Formatter class for filtering sensitive
-    information in log messages.
+    Redacting Formatter class for filtering sensitive information
+    in log messages.
     """
-
     REDACTION = "***"
     SEPARATOR = ";"
 
     def __init__(self, fields: List[str]):
-        super(RedactingFormatter, self).__init__("[HOLBERTON] \
-            %(name)s %(levelname)s %(asctime)-15s: %(message)s")
+        super(RedactingFormatter, self).__init__("[HOLBERTON] %(name)s \
+            %(levelname)s %(asctime)-15s: %(message)s")
         self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
         """
-        Format function to filter sensitive information in log messages.
+        Format function to filter sensitive information in log messages
 
         Args:
             record: The LogRecord to be formatted.
@@ -51,23 +50,23 @@ class RedactingFormatter(logging.Formatter):
             field: The name of the field to be filtered.
             redaction: The string to be used as the redacted value.
             message: The log message to be filtered.
-            separator: The separator used for separating fields in the
-            log message
+            separator: The separator used to separate fields in the
+            log message.
 
         Returns:
-            The filtered log message with redacted values for the specified
-            field.
+            The filtered log message with redacted values for the
+            specified field.
         """
         pattern = fr"{field}=([^{separator}]*)"
         replacement = fr"{field}={redaction}"
         message = re.sub(pattern, replacement, message)
+        message = message.replace(separator, f"{separator} ")
         return message
 
 
 def main() -> None:
     """
-    Main function to demonstrate the usage of RedactingFormatter
-    class.
+    Main function to demonstrate the usage of RedactingFormatter class.
     """
     formatter = RedactingFormatter(fields=["password", "date_of_birth"])
     logger = logging.getLogger("example")
