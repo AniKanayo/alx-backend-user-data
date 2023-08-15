@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """DB module
 """
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, exc
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
+from sqlalchemy.orm import sessionmaker, Session, exc as orm_exc
+from sqlalchemy.orm.exc import NoResultFound, InvalidRequestError
 
 from user import Base, User
 
@@ -37,3 +37,16 @@ class DB:
         self._session.add(user)
         self._session.commit()
         return user
+
+    def find_user_by(self, **kwargs) -> User:
+        """
+        Return the first row found in the users table
+        as filtered by the method’s input arguments.
+        """
+        try:
+            user = self._session.query(User).filter_by(**kwargs).first()
+            if user is None:
+                raise orm_exc.NoResultFound
+            return user
+        except AttributeError as e:
+            raise InvalidRequestError("Invalid field name") from e
