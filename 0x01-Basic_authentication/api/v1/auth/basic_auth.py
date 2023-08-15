@@ -64,9 +64,12 @@ class BasicAuth(Auth):
         Return the User instance based on the provided user
         email and password.
         """
+        print(f'Email: {user_email}, Password: {user_pwd}')
         if user_email is None or not isinstance(user_email, str):
             return None
         users = User.search({"email": user_email})
+
+        print(f'Users: {users}')
         if len(users) == 0:
             return None
 
@@ -78,8 +81,7 @@ class BasicAuth(Auth):
 
     def current_user(self, request=None) -> TypeVar('User'):
         """
-        Retrieve the User instance for a request using Basic
-        Authentication.
+        Retrieve the User instance for a request using Basic Authentication.
         """
         if request is None:
             request = request
@@ -94,9 +96,8 @@ class BasicAuth(Auth):
         if base64_authorization_header is None:
             return None
 
-        decoded_base64_authorization_header = \
-            self.decode_base64_authorization_header
-        (base64_authorization_header)
+        decoded_base64_authorization_header = self.decode_base64_
+        authorization_header(base64_authorization_header)
 
         if decoded_base64_authorization_header is None:
             return None
@@ -106,3 +107,5 @@ class BasicAuth(Auth):
 
         if user_email is None or user_pwd is None:
             return None
+
+        return self.user_object_from_credentials(user_email, user_pwd)
