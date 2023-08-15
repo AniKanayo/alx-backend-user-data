@@ -66,9 +66,6 @@ class BasicAuth(Auth):
         """
         if user_email is None or not isinstance(user_email, str):
             return None
-        if user_pwd is None or not isinstance(user_pwd, str):
-            return None
-
         users = User.search({"email": user_email})
         if len(users) == 0:
             return None
@@ -78,8 +75,6 @@ class BasicAuth(Auth):
             return None
 
         return user
-
-    return self.user_object_from_credentials(user_email, user_pwd)
 
     def current_user(self, request=None) -> TypeVar('User'):
         """
